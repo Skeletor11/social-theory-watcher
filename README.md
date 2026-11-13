@@ -1,17 +1,25 @@
-# Social Theory – WSTB Song Watcher (cloud)
+# Social Theory – Airplay Watcher (cloud)
 
-Checks [88.9 WSTB](https://www.wstb.org/page/recently-played)'s recently-played
-feed every 30 minutes and emails + texts when any **Social Theory** track airs.
-Runs on GitHub Actions, so it works regardless of whether any personal computer
-is on.
+Checks multiple radio stations' recently-played feeds every 30 minutes and
+emails + pushes (ntfy) when any **Social Theory** track airs. Runs on GitHub
+Actions, so it works regardless of whether any personal computer is on.
+
+Stations watched (see `STATIONS` in `check_song.py`):
+- **88.9 WSTB** (Streetsboro OH) – feed `wp.rock889.com/nowplaying`
+- **98.9 Magic FM / KKMG** (Colorado Springs CO) – SoCast feed
+  `socast-public.s3.amazonaws.com/player/lp_3326_3126.js`
 
 ## How it works
-- `check_song.py` reads the station's JSON feed
-  (`https://wp.rock889.com/nowplaying/nowplaying.php`) and matches any artist
-  containing "social theory" (case-insensitive).
-- It emails via Gmail SMTP and texts via a carrier SMS gateway.
-- `state/last_seen.txt` (committed back by the workflow) prevents duplicate or
-  missed alerts across delayed/skipped runs.
+- `check_song.py` reads each station's JSON feed and matches any artist
+  containing "social theory" (case-insensitive). Each station declares which
+  JSON fields hold the artist/title/timestamp, so differing feed formats share
+  one code path.
+- It emails via Gmail SMTP and pushes to a phone via ntfy.sh.
+- Per-station `state/last_seen*.txt` files (committed back by the workflow)
+  prevent duplicate or missed alerts across delayed/skipped runs.
+
+To add another station, inspect its page for the recently-played feed and add an
+entry to `STATIONS` with the right field names and a unique `state` file.
 
 ## One-time setup
 1. **Gmail App Password** – create at https://myaccount.google.com/apppasswords
