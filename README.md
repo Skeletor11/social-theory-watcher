@@ -21,7 +21,7 @@ is on.
    - `GMAIL_ADDRESS` – your sending Gmail
    - `GMAIL_APP_PASSWORD` – the 16-char app password
    - `NOTIFY_EMAIL` – where alerts go
-   - `NOTIFY_SMS` – carrier SMS gateway, e.g. `3305551234@vtext.com` (Verizon)
+   - `NTFY_TOPIC` – private ntfy.sh topic for phone push (Verizon killed email-to-SMS)
 3. **Test**: Actions tab → "WSTB Song Watcher" → Run workflow → test = true,
    or `gh workflow run "WSTB Song Watcher" -f test=true`.
 

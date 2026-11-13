@@ -13,7 +13,7 @@ Env vars (set as GitHub Secrets):
   GMAIL_ADDRESS       the sending Gmail address
   GMAIL_APP_PASSWORD  16-char Google App Password (NOT the normal password)
   NOTIFY_EMAIL        where to email alerts (defaults to GMAIL_ADDRESS)
-  NOTIFY_SMS          carrier SMS gateway address, e.g. 3305551234@vtext.com
+  NTFY_TOPIC          ntfy.sh topic to push phone alerts to (private random string)
   TEST_RUN            "true" to send a one-off test message and exit
 """
 import os, json, ssl, smtplib, urllib.request
@@ -27,7 +27,7 @@ STATE  = Path("state/last_seen.txt")
 GMAIL    = os.environ["GMAIL_ADDRESS"]
 APP_PW   = os.environ["GMAIL_APP_PASSWORD"]
 EMAIL_TO = os.environ.get("NOTIFY_EMAIL", GMAIL).strip()
-SMS_TO   = os.environ.get("NOTIFY_SMS", "").strip()
+NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "").strip()
 TEST     = os.environ.get("TEST_RUN", "").strip().lower() in ("1", "true", "yes")
 
 
@@ -50,6 +50,17 @@ def send(to_addr, subject, body):
         s.send_message(msg)
 
 
+def push(title, message, tags="radio"):
+    """Send a phone push via ntfy.sh. Title must be ASCII (HTTP header)."""
+    if not NTFY_TOPIC:
+        return
+    url = NTFY_TOPIC if NTFY_TOPIC.startswith("http") else f"https://ntfy.sh/{NTFY_TOPIC}"
+    req = urllib.request.Request(
+        url, data=message.encode("utf-8"), method="POST",
+        headers={"Title": title, "Tags": tags})
+    urllib.request.urlopen(req, timeout=30)
+
+
 def alert(hit):
     # full email
     send(EMAIL_TO,
@@ -60,8 +71,8 @@ def alert(hit):
           f"  Album:  {hit.get('album','')}\n"
           f"  Time:   {hit['datetime']}\n\n"
           "Recently played: https://www.wstb.org/page/recently-played"))
-    # short text
-    send(SMS_TO, "WSTB", f"Social Theory on 88.9 WSTB: {hit['title']} ({hit['datetime']})")
+    # phone push
+    push("Social Theory on 88.9 WSTB", f"{hit['title']} - {hit['datetime']}")
 
 
 def main():
@@ -73,7 +84,8 @@ def main():
              ("Test OK - your cloud watcher is live.\n"
               f"Most recent song on WSTB right now: {latest['artist']} - {latest['title']} "
               f"({latest['datetime']}).\nYou'll be alerted whenever Social Theory airs."))
-        send(SMS_TO, "WSTB", f"Test OK - watcher live. Latest: {latest['title']}")
+        push("WSTB watcher test", f"Watcher is live. Latest on WSTB: {latest['title']}",
+             tags="white_check_mark")
         print("Test message sent.")
         return
 

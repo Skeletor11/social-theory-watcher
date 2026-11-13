@@ -32,7 +32,7 @@ jobs:
           GMAIL_ADDRESS:      ${{ secrets.GMAIL_ADDRESS }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           NOTIFY_EMAIL:       ${{ secrets.NOTIFY_EMAIL }}
-          NOTIFY_SMS:         ${{ secrets.NOTIFY_SMS }}
+          NTFY_TOPIC:         ${{ secrets.NTFY_TOPIC }}
           TEST_RUN:           ${{ inputs.test }}
         run: python check_song.py
 
